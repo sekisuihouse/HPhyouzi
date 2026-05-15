@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>MESH HPゲーム 8人用</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: white;
+      text-align: center;
+      padding: 30px;
+    }
+
+    .players {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .player {
+      background: #222;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .name {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .hp-text {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .bar-frame {
+      width: 100%;
+      height: 30px;
+      background: #555;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      width: 100%;
+      background: limegreen;
+      transition: width 0.2s;
+    }
+
+    .dead {
+      background: crimson !important;
+    }
+
+    .heal-button {
+      margin-top: 12px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #2ECC71;
+      color: white;
+      cursor: pointer;
+    }
+
+    .heal-button:hover {
+      background: #27AE60;
+    }
+
+    .help {
+      margin-top: 30px;
+      color: #ccc;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>MESH HPゲーム 8人用</h1>
+
+  <div class="players">
+    <div class="player">
+      <div class="name">プレイヤー1</div>
+      <div class="hp-text" id="hpText1">HP: 100</div>
+      <div class="bar-frame"><div class="bar" id="bar1"></div></div>
+      <button class="heal-button" onclick="healPlayer(1)">プレイヤー1を回復</button>
+    </div>
+
+    <div class="player">
+      <div class="name">プレイヤー2</div>
+      <div class="hp-text" id="hpText2">HP: 100</div>
+      <div class="bar-frame"><div class="bar" id="bar2"></div></div>
+      <button class="heal-button" onclick="healPlayer(2)">プレイヤー2を回復</button>
+    </div>
+
+    <div class="player">
+      <div class="name">プレイヤー3</div>
+      <div class="hp-text" id="hpText3">HP: 100</div>
+      <div class="bar-frame"><div class="bar" id="bar3"></div></div>
+      <button class="heal-button" onclick="healPlayer(3)">プレイヤー3を回復</button>
+    </div>
+
+    <div class="player">
+      <div class="name">プレイヤー4</div>
+      <div class="hp-text" id="hpText4">HP: 100</div>
+      <div class="bar-frame"><div class="bar" id="bar4"></div></div>
+      <button class="heal-button" onclick="healPlayer(4)">プレイヤー4を回復</button>
+    </div>
+
+    <div class="player">
+      <div class="name">プレイヤー5</div>
+      <div class="hp-text" id="hpText5">HP: 100</div>
+      <div class="bar-frame"><div class="bar" id="bar5"></div></div>
+      <button class="heal-button" onclick="healPlayer(5)">プレイヤー5を回復</button>
+    </div>
+
+    <div class="player">
+      <div class="name">プレイヤー6</div>
+      <div class="hp-text" id="hpText6">HP: 100</div>
+      <div class="bar-frame"><div class="bar" id="bar6"></div></div>
+      <button class="heal-button" onclick="healPlayer(6)">プレイヤー6を回復</button>
+    </div>
+
+    <div class="player">
+      <div class="name">プレイヤー7</div>
+      <div class="hp-text" id="hpText7">HP: 100</div>
+      <div class="bar-frame"><div class="bar" id="bar7"></div></div>
+      <button class="heal-button" onclick="healPlayer(7)">プレイヤー7を回復</button>
+    </div>
+
+    <div class="player">
+      <div class="name">プレイヤー8</div>
+      <div class="hp-text" id="hpText8">HP: 100</div>
+      <div class="bar-frame"><div class="bar" id="bar8"></div></div>
+      <button class="heal-button" onclick="healPlayer(8)">プレイヤー8を回復</button>
+    </div>
+  </div>
+
+  <div class="help">
+    MESH側で、MESH1 → 1キー、MESH2 → 2キー、MESH3 → 3キー、MESH4 → 4キーに設定する。<br>
+    MESH5 → 5キー、MESH6 → 6キー、MESH7 → 7キー、MESH8 → 8キーに設定する。<br>
+    1〜8キーで対応するHPが20減る。<br>
+    各プレイヤーの回復ボタンでHPが20回復する。<br>
+    Rキーで全員のHPをリセット。
+  </div>
+
+  <script>
+    const maxHp = 100;
+    const damage = 20;
+    const healAmount = 20;
+    const playerCount = 8;
+
+    let hp = {};
+    let lastHitTime = {};
+
+    const cooldown = 500; // 0.5秒
+
+    // 初期化
+    for (let i = 1; i <= playerCount; i++) {
+      hp[i] = maxHp;
+      lastHitTime[i] = 0;
+    }
+
+    function updateHp(player) {
+      const hpText = document.getElementById("hpText" + player);
+      const bar = document.getElementById("bar" + player);
+
+      hpText.textContent = "HP: " + hp[player];
+
+      const percent = (hp[player] / maxHp) * 100;
+      bar.style.width = percent + "%";
+
+      if (hp[player] <= 0) {
+        hpText.textContent = "HP: 0  やられた";
+        bar.classList.add("dead");
+      } else {
+        bar.classList.remove("dead");
+
+        if (hp[player] <= 30) {
+          bar.style.background = "orange";
+        } else {
+          bar.style.background = "limegreen";
+        }
+      }
+    }
+
+    function damagePlayer(player) {
+      const now = Date.now();
+
+      // 連続で反応しすぎないようにする
+      if (now - lastHitTime[player] < cooldown) {
+        return;
+      }
+
+      lastHitTime[player] = now;
+
+      hp[player] -= damage;
+
+      if (hp[player] < 0) {
+        hp[player] = 0;
+      }
+
+      updateHp(player);
+    }
+
+    function healPlayer(player) {
+      hp[player] += healAmount;
+
+      if (hp[player] > maxHp) {
+        hp[player] = maxHp;
+      }
+
+      updateHp(player);
+    }
+
+    function resetHp() {
+      for (let i = 1; i <= playerCount; i++) {
+        hp[i] = maxHp;
+        updateHp(i);
+      }
+    }
+
+    document.addEventListener("keydown", function(event) {
+      const key = event.key;
+
+      if (key >= "1" && key <= "8") {
+        damagePlayer(Number(key));
+      }
+
+      if (key === "r" || key === "R") {
+        resetHp();
+      }
+    });
+  </script>
+
+</body>
+</html>
